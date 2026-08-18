@@ -57,15 +57,42 @@ phases:
   # ----------------------------------------------------------
   build:
     commands:
-      # The stage must be provided by the CI/CD pipeline.
-      # Prevent accidental deployments without a target stage.
+      # BRANCH_NAME is provided by CodePipeline through
+      # SourceVariables.BranchName.
+      #
+      # Git branch → Serverless stage:
+      #
+      #   dev  → dev
+      #   qa   → qa
+      #   main → prod
+      #
+      # Fail explicitly if the branch is not supported.
       - |
-        if [ -z "$STAGE" ]; then
-          echo "ERROR: STAGE environment variable is required."
+        if [ -z "$BRANCH_NAME" ]; then
+          echo "ERROR: BRANCH_NAME environment variable is required."
           exit 1
         fi
 
-      # Deploy using the Serverless Framework version installed
-      # locally in node_modules.
-      - echo "Deploying MIA Serverless API to stage ${STAGE}"
+        case "$BRANCH_NAME" in
+          dev)
+            STAGE="dev"
+            ;;
+          qa)
+            STAGE="qa"
+            ;;
+          main)
+            STAGE="prod"
+            ;;
+          *)
+            echo "ERROR: Unsupported branch: $BRANCH_NAME"
+            exit 1
+            ;;
+        esac
+
+        export STAGE
+
+        echo "Branch: ${BRANCH_NAME}"
+        echo "Deployment stage: ${STAGE}"
+
+      # Deploy using the Serverless Framework version installed locally.
       - npx serverless deploy --stage ${STAGE}
