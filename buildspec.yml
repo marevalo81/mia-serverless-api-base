@@ -94,5 +94,13 @@ phases:
         echo "Branch: ${BRANCH_NAME}"
         echo "Deployment stage: ${STAGE}"
 
+      - |
+        if [ -z "$SERVERLESS_LICENSE_KEY" ]; then
+          echo "ERROR: SERVERLESS_LICENSE_KEY is NOT available."
+          exit 1
+        fi
+
+        echo "SERVERLESS_LICENSE_KEY is available."
+        echo "License key length: ${#SERVERLESS_LICENSE_KEY}"
       # Deploy using the Serverless Framework version installed locally.
       - npx serverless deploy --stage ${STAGE}
