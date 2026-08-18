@@ -1,0 +1,12 @@
+{
+  "name": "mia-serverless-api-base",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Base template for MIA Serverless APIs",
+  "engines": {
+    "node": "24.x"
+  },
+  "devDependencies": {
+    "serverless": "4.41.0"
+  }
+}

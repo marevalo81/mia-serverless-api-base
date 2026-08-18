@@ -1,0 +1,71 @@
+# ============================================================
+# MIA AVANZA CONTIGO - Serverless API
+# AWS CodeBuild specification
+# ============================================================
+#
+# Purpose:
+#   Install project dependencies and deploy the Serverless API
+#   to the stage selected by the CI/CD pipeline.
+#
+# Stage management:
+#   The stage is determined by the Git branch and passed to
+#   CodeBuild as the STAGE environment variable.
+#
+# Expected values:
+#   dev
+#   qa
+#   prod
+#
+# Example:
+#   Git branch: dev
+#        ↓
+#   CodePipeline
+#        ↓
+#   STAGE=dev
+#        ↓
+#   CodeBuild
+#        ↓
+#   npx serverless deploy --stage dev
+#
+# Important:
+#   - Do not install Serverless globally.
+#   - Serverless is defined as a project devDependency.
+#   - npm ci uses package-lock.json to guarantee reproducible
+#     dependency versions.
+#   - Lambdas are NOT bundled or compiled in this pipeline.
+#   - The deployment is performed directly by Serverless.
+#
+# ============================================================
+
+version: 0.2
+
+phases:
+  # ----------------------------------------------------------
+  # Install project dependencies
+  # ----------------------------------------------------------
+  install:
+    runtime-versions:
+      nodejs: 24
+
+    commands:
+      # Install the exact dependency tree defined in
+      # package-lock.json.
+      - npm ci
+
+  # ----------------------------------------------------------
+  # Deploy Serverless service
+  # ----------------------------------------------------------
+  build:
+    commands:
+      # The stage must be provided by the CI/CD pipeline.
+      # Prevent accidental deployments without a target stage.
+      - |
+        if [ -z "$STAGE" ]; then
+          echo "ERROR: STAGE environment variable is required."
+          exit 1
+        fi
+
+      # Deploy using the Serverless Framework version installed
+      # locally in node_modules.
+      - echo "Deploying MIA Serverless API to stage ${STAGE}"
+      - npx serverless deploy --stage ${STAGE}

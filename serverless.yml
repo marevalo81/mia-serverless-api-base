@@ -1,0 +1,120 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: miaavanzacontigo
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: mia-base
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: mia-base
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  layers:
+    common:
+      name: mia-common
+      arn: arn:aws:lambda:${self:provider.region}:824090261285:layer:mia-common:2
+    postgres:
+      name: mia-postgres
+      arn: arn:aws:lambda:${self:provider.region}:824090261285:layer:mia-postgres:1
+    jwt:
+      name: mia-jwt
+      arn: arn:aws:lambda:${self:provider.region}:824090261285:layer:mia-jwt:1
+
+  VPC:
+    dev:
+      securityGroupIds:
+        - sg-00e95b5f6a24563a4
+      subnetIds:
+        - subnet-08fc64c83d2e4abd7
+        - subnet-0fb763f8546a2d65c
+        - subnet-0602d1e8f1f28c238
+        - subnet-0945acd20ccfc0e00
+        - subnet-062accc631e2c4136
+        - subnet-0d20e977001b3cfee
+
+    qa:
+      securityGroupIds:
+        - sg-aaaaaaaaaaaaaaaaa
+      subnetIds:
+        - subnet-bbbbbbbbbbbbbbbbb
+        - subnet-ccccccccccccccccc
+
+    prod:
+      securityGroupIds:
+        - sg-ddddddddddddddddd
+      subnetIds:
+        - subnet-eeeeeeeeeeeeeeeee
+        - subnet-fffffffffffffffff
+  DB_HOST:
+    dev: /mia/dev/db/host
+    qa: /mia/qa/db/host
+    prod: /mia/prod/db/host
+
+  DB_PORT:
+    dev: /mia/dev/db/port
+    qa: /mia/qa/db/port
+    prod: /mia/prod/db/port
+
+  DB_NAME:
+    dev: /mia/dev/db/name
+    qa: /mia/qa/db/name
+    prod: /mia/prod/db/name
+
+  DB_USER:
+    dev: /mia/dev/db/user
+    qa: /mia/qa/db/user
+    prod: /mia/prod/db/user
+
+  RDS_DB_RESOURCE_ID:
+    dev: db-4HSNEF7QL4TJ6PSZJ7JOVMAQUM
+    qa:
+    prod:
+
+  COGNITO_USER_POOL_ARN:
+    dev: arn:aws:cognito-idp:us-east-1:824090261285:userpool/us-east-1_cNcsFoSbd
+    qa:
+    prod:
+
+functions:
+  health:
+    handler: handlers/health.handler
+    role:
+      Fn::GetAtt:
+        - LambdaDatabaseExecutionRole
+        - Arn
+    layers:
+      - ${self:custom.layers.common.arn}
+      - ${self:custom.layers.postgres.arn}
+      - ${self:custom.layers.jwt.arn}
+    vpc:
+      securityGroupIds: ${self:custom.VPC.${self:provider.stage}.securityGroupIds}
+      subnetIds: ${self:custom.VPC.${self:provider.stage}.subnetIds}
+    environment:
+      DB_HOST: ${ssm:${self:custom.DB_HOST.${self:provider.stage}}}
+      DB_PORT: ${ssm:${self:custom.DB_PORT.${self:provider.stage}}}
+      DB_NAME: ${ssm:${self:custom.DB_NAME.${self:provider.stage}}}
+      DB_USER: ${ssm:${self:custom.DB_USER.${self:provider.stage}}}
+    events:
+      - http:
+          path: /health
+          method: get
+  example:
+    handler: handlers/example.handler
+    role:
+      Fn::GetAtt:
+        - LambdaBasicExecutionRole
+        - Arn
+    layers:
+      - ${self:custom.layers.common.arn}
+    events:
+      - http:
+          path: /example
+          method: post
+          authorizer:
+            arn: ${self:custom.COGNITO_USER_POOL_ARN.${self:provider.stage}}
+
+resources:
+  - ${file(resources/iam.yml)}
