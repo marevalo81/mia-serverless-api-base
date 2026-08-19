@@ -12,18 +12,19 @@ provider:
   endpointType: REGIONAL
   deploymentBucket:
     name: mia-${self:provider.stage}-serverless-deployments
-  package:
-    individually: true
-    patterns:
-      - "!README.md"
-      - "!serverless.yml"
-      - "!buildspec.yml"
-      - "!package-lock.json"
-      - "!package.json"
-      - "!resources/**"
-      - "!node_modules/**"
-      - "!business/**"
-      - "!handlers/**"
+
+package:
+  individually: true
+  patterns:
+    - "!README.md"
+    - "!serverless.yml"
+    - "!buildspec.yml"
+    - "!package-lock.json"
+    - "!package.json"
+    - "!resources/**"
+    - "!node_modules/**"
+    - "!business/**"
+    - "!handlers/**"
 
 custom:
   layers:
