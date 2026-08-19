@@ -12,7 +12,7 @@ provider:
   deploymentBucket:
     name: mia-${self:provider.stage}-serverless-deployments
   apiGateway:
-    endpointType: REGIONAL
+    endpointType: Regional
 
 custom:
   layers:
