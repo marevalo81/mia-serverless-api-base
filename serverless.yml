@@ -13,6 +13,7 @@ provider:
   deploymentBucket:
     name: mia-${self:provider.stage}-serverless-deployments
   package:
+    individually: true
     patterns:
       - "!README.md"
       - "!serverless.yml"
