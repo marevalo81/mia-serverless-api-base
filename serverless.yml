@@ -12,6 +12,17 @@ provider:
   endpointType: REGIONAL
   deploymentBucket:
     name: mia-${self:provider.stage}-serverless-deployments
+  package:
+    patterns:
+      - "!README.md"
+      - "!serverless.yml"
+      - "!buildspec.yml"
+      - "!package-lock.json"
+      - "!package.json"
+      - "!resources/**"
+      - "!node_modules/**"
+      - "!business/**"
+      - "!handlers/**"
 
 custom:
   layers:
@@ -83,6 +94,9 @@ custom:
 functions:
   health:
     handler: handlers/health.handler
+    package:
+      patterns:
+        - "handlers/health.mjs"
     role:
       Fn::GetAtt:
         - LambdaDatabaseExecutionRole
@@ -105,6 +119,10 @@ functions:
           method: get
   example:
     handler: handlers/example.handler
+    package:
+      patterns:
+        - "handlers/example.mjs"
+        - "business/example.mjs"
     role:
       Fn::GetAtt:
         - LambdaBasicExecutionRole
