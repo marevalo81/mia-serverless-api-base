@@ -13,6 +13,19 @@ provider:
   deploymentBucket:
     name: mia-${self:provider.stage}-serverless-deployments
 
+package:
+  individually: true
+  patterns:
+    - "!README.md"
+    - "!serverless.yml"
+    - "!buildspec.yml"
+    - "!package-lock.json"
+    - "!package.json"
+    - "!resources/**"
+    - "!node_modules/**"
+    - "!business/**"
+    - "!handlers/**"
+
 custom:
   layers:
     common:
@@ -39,17 +52,25 @@ custom:
 
     qa:
       securityGroupIds:
-        - sg-aaaaaaaaaaaaaaaaa
+        - sg-00e95b5f6a24563a4
       subnetIds:
-        - subnet-bbbbbbbbbbbbbbbbb
-        - subnet-ccccccccccccccccc
+        - subnet-08fc64c83d2e4abd7
+        - subnet-0fb763f8546a2d65c
+        - subnet-0602d1e8f1f28c238
+        - subnet-0945acd20ccfc0e00
+        - subnet-062accc631e2c4136
+        - subnet-0d20e977001b3cfee
 
     prod:
       securityGroupIds:
-        - sg-ddddddddddddddddd
+        - sg-00e95b5f6a24563a4
       subnetIds:
-        - subnet-eeeeeeeeeeeeeeeee
-        - subnet-fffffffffffffffff
+        - subnet-08fc64c83d2e4abd7
+        - subnet-0fb763f8546a2d65c
+        - subnet-0602d1e8f1f28c238
+        - subnet-0945acd20ccfc0e00
+        - subnet-062accc631e2c4136
+        - subnet-0d20e977001b3cfee
   DB_HOST:
     dev: /mia/dev/db/host
     qa: /mia/qa/db/host
@@ -77,12 +98,15 @@ custom:
 
   COGNITO_USER_POOL_ARN:
     dev: arn:aws:cognito-idp:us-east-1:824090261285:userpool/us-east-1_cNcsFoSbd
-    qa:
-    prod:
+    qa: arn:aws:cognito-idp:us-east-1:824090261285:userpool/us-east-1_cNcsFoSbd
+    prod: arn:aws:cognito-idp:us-east-1:824090261285:userpool/us-east-1_cNcsFoSbd
 
 functions:
   health:
     handler: handlers/health.handler
+    package:
+      patterns:
+        - "handlers/health.mjs"
     role:
       Fn::GetAtt:
         - LambdaDatabaseExecutionRole
@@ -105,6 +129,10 @@ functions:
           method: get
   example:
     handler: handlers/example.handler
+    package:
+      patterns:
+        - "handlers/example.mjs"
+        - "business/example.mjs"
     role:
       Fn::GetAtt:
         - LambdaBasicExecutionRole

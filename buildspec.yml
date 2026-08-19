@@ -57,50 +57,14 @@ phases:
   # ----------------------------------------------------------
   build:
     commands:
-      # BRANCH_NAME is provided by CodePipeline through
-      # SourceVariables.BranchName.
-      #
-      # Git branch → Serverless stage:
-      #
-      #   dev  → dev
-      #   qa   → qa
-      #   main → prod
-      #
-      # Fail explicitly if the branch is not supported.
-      - |
-        if [ -z "$BRANCH_NAME" ]; then
-          echo "ERROR: BRANCH_NAME environment variable is required."
-          exit 1
-        fi
+      # Resolve the deployment stage from the Git branch.
+      # Kept as a single command so CodeBuild does not print
+      # the complete multi-line shell script in the log.
+      - 'if [ -z "$BRANCH_NAME" ]; then echo "ERROR: BRANCH_NAME environment variable is required."; exit 1; fi; case "$BRANCH_NAME" in dev) STAGE="dev" ;; qa) STAGE="qa" ;; main) STAGE="prod" ;; *) echo "ERROR: Unsupported branch: $BRANCH_NAME"; exit 1 ;; esac; export STAGE; echo "Branch: ${BRANCH_NAME}"; echo "Deployment stage: ${STAGE}"'
 
-        case "$BRANCH_NAME" in
-          dev)
-            STAGE="dev"
-            ;;
-          qa)
-            STAGE="qa"
-            ;;
-          main)
-            STAGE="prod"
-            ;;
-          *)
-            echo "ERROR: Unsupported branch: $BRANCH_NAME"
-            exit 1
-            ;;
-        esac
+      # Validate the Serverless license key without printing
+      # the key itself.
+      - 'if [ -z "$SERVERLESS_LICENSE_KEY" ]; then echo "ERROR: SERVERLESS_LICENSE_KEY is NOT available."; exit 1; fi; echo "SERVERLESS_LICENSE_KEY is available."; echo "License key length: ${#SERVERLESS_LICENSE_KEY}"'
 
-        export STAGE
-
-        echo "Branch: ${BRANCH_NAME}"
-        echo "Deployment stage: ${STAGE}"
-
-      - |
-        if [ -z "$SERVERLESS_LICENSE_KEY" ]; then
-          echo "ERROR: SERVERLESS_LICENSE_KEY is NOT available."
-          exit 1
-        fi
-
-        echo "SERVERLESS_LICENSE_KEY is available."
-        echo "License key length: ${#SERVERLESS_LICENSE_KEY}"
       # Deploy using the Serverless Framework version installed locally.
-      - npx serverless deploy --stage ${STAGE}
+      - "npx serverless deploy --stage ${STAGE}"
