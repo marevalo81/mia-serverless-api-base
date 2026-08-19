@@ -9,10 +9,9 @@ provider:
   runtime: nodejs24.x
   region: us-east-1
   stage: ${opt:stage, 'dev'}
+  endpointType: REGIONAL
   deploymentBucket:
     name: mia-${self:provider.stage}-serverless-deployments
-  apiGateway:
-    endpointType: Regional
 
 custom:
   layers:
